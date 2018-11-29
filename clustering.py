@@ -20,7 +20,7 @@ stemmer = PorterStemmer()
 
 # Function takes in data and builds the word2vec model
 def createModel (data):
-    posts = data['Posts'].dropna().values.tolist()
+    comments = data['comments'].dropna().values.tolist()
 
     tokenized_stopped_corpus = []
 
@@ -29,17 +29,17 @@ def createModel (data):
     tokenizer = RegexpTokenizer(r'\w+')
 
     # Tokenizing, removing stopwords, removing punctuation, lowercasing, and only keeping nouns
-    for post in posts:
-        post_words = tokenizer.tokenize(post.decode('utf-8', errors='replace'))
-        word_tags = nltk.pos_tag(post_words)
-        post_words_stops_removed = []
+    for comment in comments:
+        comment_words = tokenizer.tokenize(comment.decode('utf-8', errors='replace'))
+        word_tags = nltk.pos_tag(comment_words)
+        comment_words_stops_removed = []
         for word, pos in word_tags:
             if word.lower() not in stopwords.words('english'):
                 if pos == 'NN' or pos == 'NNP' or pos == 'NNS' or pos == 'NNPS':
-                    post_words_stops_removed.append(word.lower())
+                    comment_words_stops_removed.append(word.lower())
                     #stemmed_word = stemmer.stem(word.lower())
                     #post_words_stops_removed.append(stemmed_word)
-        tokenized_stopped_corpus.append(post_words_stops_removed)
+        tokenized_stopped_corpus.append(comment_words_stops_removed)
     word2vec_model = gensim.models.Word2Vec(tokenized_stopped_corpus, min_count=1, size=200)
 
     # with open("stopwords_english.csv",'wb') as resultFile:
