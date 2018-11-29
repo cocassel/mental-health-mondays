@@ -1,6 +1,7 @@
 import json as j
 import pandas
 import re
+import nltk
 import numpy as np
 from nltk.corpus import stopwords
 from nltk.stem import SnowballStemmer
@@ -10,6 +11,9 @@ from sklearn.pipeline import Pipeline
 from sklearn.model_selection import train_test_split
 from sklearn.feature_selection import SelectKBest, chi2
 import sys
+
+
+################################################## Build the model ###################################################
 
 home_improvement_comments = pandas.read_csv("homeimprovement_40000comments.csv")
 home_improvement_comments['classification'] = 'Unrelated'
@@ -26,75 +30,137 @@ stop_words = stopwords.words("english")
 
 df_all_comments['cleaned'] = df_all_comments['comments'].apply(lambda x: " ".join([stemmer.stem(i) for i in re.sub("[^a-zA-Z]", " ", x).split() if i not in stop_words]).lower())
 
+
 X_train, X_test, y_train, y_test = train_test_split(df_all_comments['cleaned'], df_all_comments.classification, test_size=0.2)
 
-pipeline = Pipeline([('vect', TfidfVectorizer(ngram_range=(1, 3), stop_words="english", sublinear_tf=True)),
-                     ('chi',  SelectKBest(chi2, k=5000)),
-                     ('clf', LinearSVC(C=1.0, penalty='l1', max_iter=3000, dual=False))])
+pipeline = Pipeline([('vect', TfidfVectorizer(ngram_range=(1, 2), stop_words="english", sublinear_tf=True)),
+                     ('chi',  SelectKBest(chi2, k=1000)),
+                     ('clf', LinearSVC(C=1.0, penalty='l1', max_iter=4000, dual=False))])
 
 
 model = pipeline.fit(X_train, y_train)
 
-
-# vectorizer = model.named_steps['vect']
-# chi = model.named_steps['chi']
-# clf = model.named_steps['clf']
-#
-# feature_names = vectorizer.get_feature_names()
-# feature_names = [feature_names[i] for i in chi.get_support(indices=True)]
-# feature_names = np.asarray(feature_names)
-#
-# target_names = ['Unrelated', 'Related']
-
-# print("top 10 keywords per class:")
-# for i, label in enumerate(target_names):
-#     top10 = np.argsort(clf.coef_[i])[-10:]
-#     print("%s: %s" % (label, " ".join(feature_names[top10])))
-#
-#
-# top10 = np.argsort(clf.coef_[0])[-10:]
-# print("%s: %s" % (label, " ".join(feature_names[top10])))
-# top10 = np.argsort(clf.coef_[1])[-10:]
-# print("%s: %s" % (label, " ".join(feature_names[top10])))
-#
-
-# print(model.predict(['that was an awesome place. Great food!']))
-# print(model.predict(['I really hate life!']))
-
-
 print("accuracy score: " + str(model.score(X_test, y_test)))
 
 
+
+
+######################################################### Use the model ##########################################
+
 data = pandas.read_csv("MHM_all_comments.csv")
 
+
+
+### NOT STEMMING ###
+
 comments = data['comments'].dropna().values.tolist()
-
-data['cleaned'] = data['comments'].apply(lambda x: " ".join([stemmer.stem(i) for i in re.sub("[^a-zA-Z]", " ", x).split() if i not in stop_words]).lower())
-
-comments_stemmed = data['cleaned'].dropna().values.tolist()
+classifications = data['classification'].dropna().values.tolist()
 
 stripped_comments = []
 for i in comments:
     stripped_comments.append(i.decode(encoding='UTF-8', errors='replace').strip())
+# stripped_comments = filter(None, stripped_comments) # fastest
+
+comments_nouns_stemmed = []
+comments_nouns_stemmed_orig = []
+classifications_nouns_stemmed = []
+
+comments_nouns = []
+comments_nouns_orig = []
+classifications_nouns = []
+
+comments_above_10_words = []
+classifications_above_10_words = []
+
+
+for comment, classification in zip(stripped_comments, classifications):
+
+    comment_words = comment.split()
+    # Weed out really short comments -- these are generally just agreement/disagreement to other comments
+    if len(comment_words) > 10:
+        word_tags = nltk.pos_tag(comment_words)
+        comment_words_nouns = []
+        comment_words_nouns_stemmed = []
+        for word, pos in word_tags:
+            if pos == 'NN' or pos == 'NNP' or pos == 'NNS' or pos == 'NNPS':
+                if word not in stop_words:
+                    comment_words_nouns.append(word.lower())
+                    comment_words_nouns_stemmed.append(stemmer.stem(word.lower()))
+        if len(comment_words_nouns_stemmed) > 0:
+            comments_nouns_stemmed.append(" ".join(comment_words_nouns_stemmed))
+            comments_nouns_stemmed_orig.append(comment)
+            classifications_nouns_stemmed.append(classification)
+        if len(comment_words_nouns) > 0:
+            comments_nouns.append(" ".join(comment_words_nouns))
+            comments_nouns_orig.append(comment)
+            classifications_nouns.append(classification)
+        comments_above_10_words.append(comment)
+        classifications_above_10_words.append(classification)
 
 
 
-# Not stemming the input
-predictions = model.predict(stripped_comments)
 
+
+
+
+predictions = model.predict(comments_above_10_words)
 predict_df = pandas.DataFrame(
-    {'comments': stripped_comments,
-     'prediction': predictions
+    {'comments_orig': comments_above_10_words,
+     'prediction': predictions,
+     'classification': classifications_above_10_words
     })
 predict_df.to_csv('predict_results.csv', index=False, encoding='utf-8')
 
 
-
-# Stemming the input
-predictions = model.predict(comments_stemmed)
+predictions = model.predict(comments_nouns)
 predict_df = pandas.DataFrame(
-    {'comments': comments_stemmed,
-     'prediction': predictions
+    {'comments_orig': comments_nouns_orig,
+     'comments_nouns': comments_nouns,
+     'prediction': predictions,
+     'classification': classifications_nouns
     })
+predict_df.to_csv('predict_results_nouns.csv', index=False, encoding='utf-8')
 
-predict_df.to_csv('predict_results_stemmed', index=False, encoding='utf-8')
+
+predictions = model.predict(comments_nouns_stemmed)
+predict_df = pandas.DataFrame(
+    {'comments_orig': comments_nouns_stemmed_orig,
+     'comments_nouns_stemmed': comments_nouns_stemmed,
+     'prediction': predictions,
+     'classification': classifications_nouns_stemmed
+    })
+predict_df.to_csv('predict_results_nouns_stemmed.csv', index=False, encoding='utf-8')
+
+
+
+
+comments_above_10_words = []
+
+for comment in stripped_comments:
+    comment_words = comment.split()
+    # Weed out really short comments -- these are generally just agreement/disagreement to other comments
+    if len(comment_words) > 10:
+        comments_above_10_words.append(comment)
+
+predictions = model.predict(comments_above_10_words)
+predict_df = pandas.DataFrame(
+    {'comments': comments_above_10_words,
+     'prediction': predictions,
+    })
+predict_df.to_csv('predict_results_all.csv', index=False, encoding='utf-8')
+
+
+
+#data = pandas.read_csv("MHM_all_comments.csv")
+
+#data['cleaned'] = data['comments'].apply(lambda x: " ".join([i for i in re.sub("[^a-zA-Z]", " ", x).split()]).lower())
+
+# comments = data['cleaned'].dropna().values.tolist()
+
+
+
+
+
+
+
+

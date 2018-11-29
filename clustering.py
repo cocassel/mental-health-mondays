@@ -55,10 +55,10 @@ def createModel (data):
 
 
 # Function takes in a word2vec model and creates clusters. Then it prints the clusters to CSV
-def k_means_cluster(word2vec_model):
+def k_means_cluster(word2vec_model, num_clusters):
     vocab = list(word2vec_model.wv.vocab)
     X = word2vec_model[vocab]
-    num_clusters = 100
+    #num_clusters = 100
     clusterer = KMeansClusterer(num_clusters, distance=nltk.cluster.util.euclidean_distance, repeats=25)
     assigned_clusters = clusterer.cluster(X, assign_clusters=True)
 
@@ -70,7 +70,7 @@ def k_means_cluster(word2vec_model):
                 cluster_list.append(word)
         dict[index] = cluster_list
 
-    with open('clustering_result.csv', 'wb') as csv_file:
+    with open("clusters/" + str(num_clusters) + 'clustering_result.csv', 'wb') as csv_file:
         writer = csv.writer(csv_file)
         for key, value in dict.items():
             writer.writerow([key, value])
@@ -133,11 +133,13 @@ def plot_scatterplot_closest_words(word2vec_model, word):
 
 
 # Read in mental health monday data predictions from csv
-data = pandas.read_csv("predict_results.csv")
+data = pandas.read_csv("predict_results_all.csv")
 
-# Only Male data
 data_predicted_related = data.loc[data['prediction'] == 'Related']
 model = createModel(data_predicted_related)
-k_means_cluster(model)
+
+for i in range(1,20):
+    k_means_cluster(model, i*25)
 plot_scatterplot_all_words(model)
 plot_scatterplot_closest_words(model, "interview")
+plot_scatterplot_closest_words(model, "engineering")
