@@ -132,9 +132,12 @@ def plot_scatterplot_closest_words(word2vec_model, word):
     plt.show()
 
 
-# Read in data from csv
-data = pandas.read_csv("MentalHealthMondayData.csv")
-model = createModel(data)
+# Read in mental health monday data predictions from csv
+data = pandas.read_csv("predict_results.csv")
+
+# Only Male data
+data_predicted_related = data.loc[data['prediction'] == 'Related']
+model = createModel(data_predicted_related)
 k_means_cluster(model)
 plot_scatterplot_all_words(model)
 plot_scatterplot_closest_words(model, "interview")
