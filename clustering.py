@@ -143,3 +143,4 @@ for i in range(1,20):
 plot_scatterplot_all_words(model)
 plot_scatterplot_closest_words(model, "interview")
 plot_scatterplot_closest_words(model, "engineering")
+plot_scatterplot_closest_words(model, "suicide")
