@@ -65,7 +65,7 @@ model = pipeline.fit(X_train, y_train)
 print("accuracy score: " + str(model.score(X_test, y_test)))
 
 
-data = pandas.read_csv("mentalhealth_comments.csv")
+data = pandas.read_csv("reddit_uwaterloo_comments.csv")
 
 comments = data['comments'].dropna().values.tolist()
 
