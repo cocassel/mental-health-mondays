@@ -49,10 +49,6 @@ print("accuracy score: " + str(model.score(X_test, y_test)))
 
 data = pandas.read_csv("MHM_all_comments.csv")
 
-
-
-### NOT STEMMING ###
-
 comments = data['comments'].dropna().values.tolist()
 classifications = data['classification'].dropna().values.tolist()
 
@@ -101,7 +97,7 @@ for comment, classification in zip(stripped_comments, classifications):
 
 
 
-
+# Print predictions for manually classified comments -- try without stemming and with only nouns
 
 predictions = model.predict(comments_above_10_words)
 predict_df = pandas.DataFrame(
@@ -133,7 +129,7 @@ predict_df.to_csv('predict_results_nouns_stemmed.csv', index=False, encoding='ut
 
 
 
-
+# Print all pridictions to CSV -- this will be used for the clustering
 comments_above_10_words = []
 
 for comment in stripped_comments:
