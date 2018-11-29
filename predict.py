@@ -11,11 +11,11 @@ from sklearn.model_selection import train_test_split
 from sklearn.feature_selection import SelectKBest, chi2
 import sys
 
-home_improvement_comments = pandas.read_csv("reddit_homeimprovement_comments.csv")
+home_improvement_comments = pandas.read_csv("homeimprovement_40000comments.csv")
 home_improvement_comments['classification'] = 'Unrelated'
 print("Home Improvement Comments: " + str(len(home_improvement_comments)))
 
-mental_health_comments = pandas.read_csv("mentalhealth_2018_reduced.csv")
+mental_health_comments = pandas.read_csv("mentalhealth_40000comments_reduced.csv")
 mental_health_comments['classification'] = 'Related'
 print("Mental Health Comments: " + str(len(mental_health_comments)))
 
