@@ -58,7 +58,7 @@ def createModel (data):
 def k_means_cluster(word2vec_model):
     vocab = list(word2vec_model.wv.vocab)
     X = word2vec_model[vocab]
-    num_clusters = 50
+    num_clusters = 100
     clusterer = KMeansClusterer(num_clusters, distance=nltk.cluster.util.euclidean_distance, repeats=25)
     assigned_clusters = clusterer.cluster(X, assign_clusters=True)
 
