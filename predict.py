@@ -65,7 +65,7 @@ model = pipeline.fit(X_train, y_train)
 print("accuracy score: " + str(model.score(X_test, y_test)))
 
 
-data = pandas.read_csv("reddit_uwaterloo_comments.csv")
+data = pandas.read_csv("MHM_all_comments.csv")
 
 comments = data['comments'].dropna().values.tolist()
 
@@ -97,4 +97,4 @@ predict_df = pandas.DataFrame(
      'prediction': predictions
     })
 
-predict_df.to_csv('predict_results_stemmed.csv', index=False, encoding='utf-8')
+predict_df.to_csv('predict_results_stemmed', index=False, encoding='utf-8')
