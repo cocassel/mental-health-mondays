@@ -13,6 +13,9 @@ import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.manifold import TSNE
 import re
+from sklearn.cluster import KMeans
+from scipy.spatial.distance import cdist
+
 
 # intialize stemmer
 stemmer = PorterStemmer()
@@ -132,15 +135,56 @@ def plot_scatterplot_closest_words(word2vec_model, word):
     plt.show()
 
 
+# Elbow Method for optimal number of clusters
+def elbow_method(word2vec_model):
+
+    vocab = list(word2vec_model.wv.vocab)
+    X = word2vec_model[vocab]
+    distortions = []
+    K = range(1, 20)
+    for k in K:
+        kmeanModel = KMeans(n_clusters=k * 25).fit(X)
+        kmeanModel.fit(X)
+        distortions.append(sum(np.min(cdist(X, kmeanModel.cluster_centers_, 'euclidean'), axis=1)) / X.shape[0])
+
+    plt.plot(K, distortions, 'bx-')
+    plt.xlabel('k / 25')
+    plt.ylabel('Distortion')
+    plt.title('The Elbow Method showing the optimal k')
+    plt.show()
+
+
+# Plot the clusters in 2-dimensional space
+def plot_clusters(word2vec_model):
+
+    vocab = list(word2vec_model.wv.vocab)
+    X = word2vec_model[vocab]
+
+    kmeans = KMeans(n_clusters=250)
+    kmeans.fit(X)
+    y_kmeans = kmeans.predict(X)
+
+    plt.scatter(X[:, 0], X[:, 1], c=y_kmeans, s=50, cmap='viridis')
+
+    centers = kmeans.cluster_centers_
+    plt.scatter(centers[:, 0], centers[:, 1], c='black', s=200, alpha=0.5)
+    plt.show()
+
+
+
 # Read in mental health monday data predictions from csv
 data = pandas.read_csv("predict_results_all.csv")
 
+# Only use data that was deemed related by our prediction algorithm
 data_predicted_related = data.loc[data['prediction'] == 'Related']
 model = createModel(data_predicted_related)
-
-for i in range(1,20):
-    k_means_cluster(model, i*25)
 plot_scatterplot_all_words(model)
+elbow_method(model)
+plot_clusters(model)
 plot_scatterplot_closest_words(model, "interview")
 plot_scatterplot_closest_words(model, "engineering")
 plot_scatterplot_closest_words(model, "suicide")
+
+# Print clusters for k = 25 to 475 in increments of 25
+for i in range(1, 20):
+    k_means_cluster(model, i*25)

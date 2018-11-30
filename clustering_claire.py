@@ -135,7 +135,7 @@ def plot_scatterplot_all_words(word2vec_model):
     distortions = []
     K = range(1,20)
     for k in K:
-        kmeanModel = KMeans(n_clusters=k).fit(X)
+        kmeanModel = KMeans(n_clusters=k*25).fit(X)
         kmeanModel.fit(X)
         distortions.append(sum(np.min(cdist(X, kmeanModel.cluster_centers_, 'euclidean'), axis=1)) / X.shape[0])
 
