@@ -11,7 +11,8 @@ import matplotlib.pyplot as plt
 from sklearn.manifold import TSNE
 from sklearn.cluster import KMeans
 from scipy.spatial.distance import cdist
-
+import itertools
+from collections import OrderedDict
 
 # intialize stemmer
 stemmer = PorterStemmer()
@@ -41,6 +42,19 @@ def createModel (data):
         tokenized_stopped_corpus.append(comment_words_stops_removed)
     word2vec_model = gensim.models.Word2Vec(tokenized_stopped_corpus, min_count=1, size=200)
 
+    # Get frequencies of words
+    flat_list = list(itertools.chain(*tokenized_stopped_corpus))
+    sum = 0
+    word_dict = dict.fromkeys(flat_list, 0)
+    for word in range(0,len(flat_list)):
+        sum += 1
+        for text, freq in word_dict.items():
+            if flat_list[word] == text:
+                word_dict[text] += 1
+
+    ordered_dict = OrderedDict(sorted(word_dict.items(), key=lambda x: x[1]))
+    print(ordered_dict)
+    
     return word2vec_model
 
 
