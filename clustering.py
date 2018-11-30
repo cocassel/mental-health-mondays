@@ -6,13 +6,9 @@ from nltk.corpus import stopwords
 from nltk.tokenize import RegexpTokenizer
 from nltk.cluster import KMeansClusterer
 from nltk.stem import PorterStemmer
-from collections import Counter
-from sklearn import cluster
-from sklearn import metrics
 import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.manifold import TSNE
-import re
 from sklearn.cluster import KMeans
 from scipy.spatial.distance import cdist
 
@@ -26,9 +22,6 @@ def createModel (data):
     comments = data['comments'].dropna().values.tolist()
 
     tokenized_stopped_corpus = []
-
-    # We'll need to look into a better tokenizer because right now it turns "co-op" into "co" and "op" !!!!!
-
     tokenizer = RegexpTokenizer(r'\w+')
 
     # Tokenizing, removing stopwords, removing punctuation, lowercasing, and only keeping nouns
@@ -40,19 +33,13 @@ def createModel (data):
             if word.lower() not in stopwords.words('english'):
                 if pos == 'NN' or pos == 'NNP' or pos == 'NNS' or pos == 'NNPS':
                     comment_words_stops_removed.append(word.lower())
+
+                    # We did not end up using stemming here. We tried it but it yielded extremely similar results
+
                     #stemmed_word = stemmer.stem(word.lower())
                     #post_words_stops_removed.append(stemmed_word)
         tokenized_stopped_corpus.append(comment_words_stops_removed)
     word2vec_model = gensim.models.Word2Vec(tokenized_stopped_corpus, min_count=1, size=200)
-
-    # with open("stopwords_english.csv",'wb') as resultFile:
-    #     wr = csv.writer(resultFile, dialect='excel')
-    #     wr.writerows(stopwords.words('english'))
-    #
-    # with open("tokenize_stopped_corpus.csv",'wb') as resultFile:
-    #     wr = csv.writer(resultFile, dialect='excel')
-    #     wr.writerows(tokenized_stopped_corpus)
-    # print(tokenized_stopped_corpus)
 
     return word2vec_model
 
@@ -184,7 +171,8 @@ plot_clusters(model)
 plot_scatterplot_closest_words(model, "interview")
 plot_scatterplot_closest_words(model, "engineering")
 plot_scatterplot_closest_words(model, "suicide")
-
+plot_scatterplot_closest_words(model, "anxiety")
+plot_scatterplot_closest_words(model, "depression")
 # Print clusters for k = 25 to 475 in increments of 25
 for i in range(1, 20):
     k_means_cluster(model, i*25)

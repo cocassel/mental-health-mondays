@@ -1,8 +1,6 @@
-import json as j
 import pandas
 import re
 import nltk
-import numpy as np
 from nltk.corpus import stopwords
 from nltk.stem import SnowballStemmer
 from sklearn.feature_extraction.text import TfidfVectorizer
@@ -10,7 +8,6 @@ from sklearn.svm import LinearSVC
 from sklearn.pipeline import Pipeline
 from sklearn.model_selection import train_test_split
 from sklearn.feature_selection import SelectKBest, chi2
-import sys
 
 
 ################################################## Build the model ###################################################
